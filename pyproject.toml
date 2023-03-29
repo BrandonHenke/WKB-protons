@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "wkb-protons"
+version = "0.1.0"
+description = ""
+authors = ["Brandon Henke <brandon.henke3@gmail.com>"]
+readme = "README.md"
+packages = [{include = "wkb_protons"}]
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.12"
+matplotlib = "^3.7.1"
+scipy = "^1.10.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
