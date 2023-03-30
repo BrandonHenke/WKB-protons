@@ -121,7 +121,7 @@ def V_E0(r,A,Z,j,l,E_0):
 
 def Γ(Sp,A,Z,j,l,E_0):
 	r = roots(V_E0,0.1,3,args=(A,Z,j,l,E_0))
-	
+
 	dr = 0.01
 	regA = np.arange(r[0],r[1],dr)
 	regB = np.arange(r[1],r[2],dr)
@@ -151,7 +151,8 @@ def main():
 	fig = plt.figure()
 	plt.plot(r,y,label=r"$V(r)$")
 	plt.plot(r,[E_0[0,0]]*len(r),label=r"$E_0$")
-	plt.ylim(np.nanmin(y[y != -np.inf]),-np.nanmin(y[y != -np.inf]))
+	smallest_y = np.nanmin(y[y != -np.inf])
+	plt.ylim(smallest_y,-smallest_y)
 	plt.title("Iodine")
 	plt.xlabel("r (fm)")
 	plt.ylabel("Energy (MeV)")
