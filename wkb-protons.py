@@ -120,32 +120,73 @@ def V_E0(r,A,Z,j,l,E_0):
 	return V(r,A,Z,j,l)-E_0
 
 def Γ(Sp,A,Z,j,l,E_0):
-	r = roots(V_E0,0.1,3,args=(A,Z,j,l,E_0))
-
+	
 	dr = 0.01
-	regA = np.arange(r[0],r[1],dr)
-	regB = np.arange(r[1],r[2],dr)
+	r1 = roots(V_E0,0.1,3,args=(A,Z,j,l,E_0))
+	r2 = root(V_E0,[1,5,50],args=(A,Z,j,l,E_0)).x
+
+
+	print(f"Roots from my root function: {r1}")
+	print(f"Roots from scipy root function: {r2}")
+	print(f"Difference between the two = {(r2-r1)}")
+
+	rr = r1.copy()
+	print(rr)
+	regA = np.arange(rr[0],rr[1],dr)
+	regB = np.arange(rr[1],rr[2],dr)
 	r = np.concatenate((
-		np.arange(10**(-3),r[0],dr),
+		np.arange(10**(-3),rr[0],dr),
 		regA,
 		regB,
-		np.arange(r[2],1.5*r[2],dr),
+		np.arange(rr[2],1.5*rr[2],dr),
 	))
+	print(rr)
 
 	kA = k(regA,A,Z,j,l,E_0)
 	kB = k(regB,A,Z,j,l,E_0)
-	integral1 = np.trapz(1/kA[np.abs(np.imag(kA)) <= 10**(-5)],regA[np.abs(np.imag(kA)) <= 10**(-5)]).real
-	integral2 = np.trapz(np.abs(kB),regB)
+	integral1_1 = np.trapz(1/kA[np.abs(np.imag(kA)) <= 10**(-5)],regA[np.abs(np.imag(kA)) <= 10**(-5)]).real
+	integral2_1 = np.trapz(np.abs(kB),regB)
+	
+	print(rr)
+	N = (1/2 * integral1_1)**(-1)
+	γ = Sp * N * ħ**2/(4*μ) * np.exp(-2 * integral2_1)
+	τ_12 = ħ*np.log(2)/(γ*c)
+	print(rr)
+	print(f"Halflife from my roots = {'%.2E'%τ_12} s")
 
-	N = (1/2 * integral1)**(-1)
-	return Sp * N * ħ**2/(4*μ) * np.exp(-2 * integral2), r
+	rr = r2.copy()
+	print(rr)
+	regA = np.arange(rr[0],rr[1],dr)
+	regB = np.arange(rr[1],rr[2],dr)
+	r = np.concatenate((
+		np.arange(10**(-3),rr[0],dr),
+		regA,
+		regB,
+		np.arange(rr[2],1.5*rr[2],dr),
+	))
+	print(rr)
+
+	kA = k(regA,A,Z,j,l,E_0)
+	kB = k(regB,A,Z,j,l,E_0)
+	integral1_2 = np.trapz(1/kA[np.abs(np.imag(kA)) <= 10**(-5)],regA[np.abs(np.imag(kA)) <= 10**(-5)]).real
+	integral2_2 = np.trapz(np.abs(kB),regB)
+	print(rr)
+
+	N = (1/2 * integral1_2)**(-1)
+	γ = Sp * N * ħ**2/(4*μ) * np.exp(-2 * integral2_2)
+	τ_12 = ħ*np.log(2)/(γ*c)
+	print(rr)
+	print(f"Halflife from scipy roots = {'%.2E'%τ_12} s")
+	print(f"Difference between integrals = {[integral1_1-integral1_2,integral2_1-integral2_2]}")
+
+	return γ, r
 
 def main():
 	Sp = 1
-	for n in range(A.shape[1]):
+	for n in range(1):
 		γ,r = Γ(Sp,A[0,n],Z[0,n],j[0,n],l[0,n],E_0[0,n])
 		τ_12 = ħ*np.log(2)/(γ*c)
-		print(f"n = {n}, T_1/2 = {τ_12*10**6} μs")
+		print(f"A = {A[0,n]}, Z = {Z[0,n]}, T_1/2 = {'%.2E'%τ_12} s")
 	# r = np.arange(0,40,0.01)
 	y = V(r,A[0,0],Z[0,0],j[0,0],l[0,0])
 	fig = plt.figure()
