@@ -1,35 +1,40 @@
 import numpy as np
 
-def V(r):
-	return np.sin(r)
 
-def turns(E_0,r0):
+
+def roots(func,r0,args):
+	if not hasattr(r0, '__iter__'):
+		r0 = [r0]
+	
 	dr = 0.1
-	points = [r0]*3
-	print(points)
+	points = np.array(r0)
 
-	for n in range(3):
-		if n >= 1:
-			points[n] = points[n-1]+dr
-		
-		sign = (V(points[n]) - E_0 > 0)
+	for n in range(len(points)):
+		sign = func(points[n],*args) > 0
 		r = points[n]
-		while (V(r) - E_0 > 0) == sign:
+		while (func(r,*args) > 0) == sign:
 			r += dr
 		
-		while np.abs(V(r) - E_0) >= 10**(-4):
-			df = (V(r+dr)-V(r))/dr
-			r = r - (V(r) - E_0)/df
-
+		while np.abs(func(r,*args)) >= 10**(-10):
+			df = (func(r+dr,*args)-func(r,*args))/dr
+			r = r - (func(r,*args)/df)
+		
 		points[n] = r
 
-	if len(points) == 3:
-		return points[0],points[1],points[2]
+	return list(points)
+
+def V(r):
+	return r**2
+
+def V_E0(r,E_0):
+	return V(r)-E_0
 
 def main():
-	r0,r1,r2 = turns(0,10**(-2))
+	E_0 = 1
+	r = roots(V_E0,10**(-2),args=(E_0,))
 
-	print(f"{r0}, {r1}, {r2}")
+	print(f"{r}")
 
 if __name__ == "__main__":
 	main()
+ 
