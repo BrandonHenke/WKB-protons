@@ -121,8 +121,7 @@ def V_E0(r,A,Z,j,l,E_0):
 
 def Γ(Sp,A,Z,j,l,E_0):
 	r = roots(V_E0,0.1,3,args=(A,Z,j,l,E_0))
-	print(f"roots = {r}")
-
+	
 	dr = 0.01
 	regA = np.arange(r[0],r[1],dr)
 	regB = np.arange(r[1],r[2],dr)
