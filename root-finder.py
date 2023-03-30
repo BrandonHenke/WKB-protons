@@ -1,7 +1,5 @@
 import numpy as np
 
-
-
 def roots(func,r0,args):
 	if not hasattr(r0, '__iter__'):
 		r0 = [r0]
@@ -21,7 +19,7 @@ def roots(func,r0,args):
 		
 		points[n] = r
 
-	return list(points)
+	return points
 
 def V(r):
 	return r**2

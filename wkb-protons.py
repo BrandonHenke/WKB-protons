@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.optimize import root
 
 
 E_0		= np.array([[
@@ -61,7 +62,7 @@ a		= 0.7 # fm
 m_π		= 139.570 # MeV
 ħ_mπ	= 2.044 # fm^2
 μ		= 938.2720813 # MeV
-c		= 2.99792458e+23
+c		= 2.99792458e+23 # fm/s
 
 def V_Coul(r,A,Z):
 	R = 1.2 * A**(1/3) # fm
@@ -75,16 +76,11 @@ def V_Coul(r,A,Z):
 			Z*e2/R0
 		))
 
-	# if r > R:
-	# 	return Z*e2/r
-	# else:
-	# 	return Z*e2/(2*R) * (3-(r/R)**2)
-
 def V_WS(r,A,j,l):
 	R		= 1.2 * A**(1/3) # fm
 
 	fws		= (1+np.exp((r-R)/a))**(-1)
-	dfws	= 1/( -2*a*np.cosh((R - r)/a) - 2*a)
+	dfws	= (-2*a*(np.cosh((R - r)/a) + 1))**(-1)
 
 	s = j-l
 	if s > 0:	l_dot_s = l*s
@@ -99,51 +95,47 @@ def V(r,A,Z,j,l):
 def k(r,A,Z,j,l,E_0):
 	return np.emath.sqrt(2*μ*(E_0 - V(r,A,Z,j,l)))/ħ
 
-def turns(r0,A,Z,j,l,E_0):
+def roots(func,r0,n,args):
 	dr = 0.1
-	points = [r0]*3
+	points = [r0]*n
 
-	for n in range(3):
+	for n in range(len(points)):
 		if n >= 1:
-			points[n] = points[n-1]+dr
+			points[n] = points[n-1] + dr
 		
-		sign = V(points[n],A,Z,j,l) - E_0 > 0
+		sign = func(points[n],*args) > 0
 		r = points[n]
-		while (V(r,A,Z,j,l) - E_0 > 0) == sign:
+		while (func(r,*args) > 0) == sign:
 			r += dr
 		
-		# print(n)
-		# print(f"V0 = {V(r-dr,A,Z,j,l)}, E0 = {E_0}")
-		# print(f"V0 - E0 = {V(r-dr,A,Z,j,l)-E_0}")
-		# print(f"V = {V(r,A,Z,j,l)}, E0 = {E_0}")
-		# print(f"V - E0 = {V(r,A,Z,j,l)-E_0}")
-		# print()
-
-		while np.abs(V(r,A,Z,j,l) - E_0) >= 10**(-3):
-			df = (V(r+dr,A,Z,j,l)-V(r,A,Z,j,l))/dr
-			r = r - ((V(r,A,Z,j,l) - E_0)/df)[0]
+		while np.abs(func(r,*args)) >= 10**(-10):
+			df = (func(r+dr,*args)-func(r,*args))/dr
+			r = r - (func(r,*args)/df)[0]
 		
 		points[n] = r
 
-	return points[0],points[1],points[2]
+	return points
+
+def V_E0(r,A,Z,j,l,E_0):
+	return V(r,A,Z,j,l)-E_0
 
 def Γ(Sp,A,Z,j,l,E_0):
+	r = roots(V_E0,0.1,3,args=(A,Z,j,l,E_0))
+	print(f"roots = {r}")
 
-	r0,r1,r2 = turns(0.001,A,Z,j,l,E_0)
-	# print(f"{r0}, {r1}, {r2}")
 	dr = 0.01
-	regA = np.arange(r0,r1,dr)
-	regB = np.arange(r1,r2,dr)
+	regA = np.arange(r[0],r[1],dr)
+	regB = np.arange(r[1],r[2],dr)
 	r = np.concatenate((
-		np.arange(10**(-3),r0,dr),
+		np.arange(10**(-3),r[0],dr),
 		regA,
 		regB,
-		np.arange(r2,1.5*r2,dr),
+		np.arange(r[2],1.5*r[2],dr),
 	))
+
 	kA = k(regA,A,Z,j,l,E_0)
 	kB = k(regB,A,Z,j,l,E_0)
 	integral1 = np.trapz(1/kA[np.abs(np.imag(kA)) <= 10**(-5)],regA[np.abs(np.imag(kA)) <= 10**(-5)]).real
-	# integral1 = np.trapz(1/kA,regA)
 	integral2 = np.trapz(np.abs(kB),regB)
 
 	N = (1/2 * integral1)**(-1)
